@@ -5,8 +5,7 @@ import Home from './screens/Home';
 import Receitas from './screens/Receitas';
 import Login from './screens/Login';
 import Cadastro from './screens/Cadastro';
-
-const Categorias = React.lazy(() => import('./screens/Categorias'));
+import Categorias from './screens/Categorias';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('login');
@@ -39,7 +38,7 @@ export default function App() {
       case 'receitas':
         return <Receitas onNavigate={onNavigate} usuario={usuario} />;
       case 'categorias':
-        return <React.Suspense fallback={<Text>Carregando...</Text>}><Categorias onNavigate={onNavigate} usuario={usuario} /></React.Suspense>;
+        return <Categorias onNavigate={onNavigate} usuario={usuario} />;
       default:
         return <Text>404 Not Found</Text>;
     }
