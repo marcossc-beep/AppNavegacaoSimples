@@ -56,6 +56,7 @@ const Categorias = ({ onNavigate, usuario }) => {
         </TouchableOpacity>
         <Text style={styles.header}>Categorias</Text>
       </View>
+
       <FlatList
         data={categorias}
         keyExtractor={item => item.id.toString()}
@@ -66,6 +67,7 @@ const Categorias = ({ onNavigate, usuario }) => {
         )}
         ListEmptyComponent={<Text>Nenhuma categoria cadastrada.</Text>}
       />
+      
       <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.addButtonText}>Adicionar Categoria</Text>
       </TouchableOpacity>

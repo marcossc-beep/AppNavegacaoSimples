@@ -17,7 +17,7 @@ export default function Receitas({ onNavigate, usuario }) {
       const data = await res.json();
       setReceitas(data);
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível carregar as receitas');
+      alert('Erro', 'Não foi possível carregar as receitas');
     }
   };
 
@@ -27,7 +27,7 @@ export default function Receitas({ onNavigate, usuario }) {
       const data = await res.json();
       setCategorias(data);
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível carregar as categorias');
+      alert('Erro', 'Não foi possível carregar as categorias');
     }
   };
 
@@ -38,7 +38,7 @@ export default function Receitas({ onNavigate, usuario }) {
 
   const handleAddReceita = async () => {
     if (!form.nome || !form.modo_preparo || !form.ingredientes || !form.categoria_id) {
-      Alert.alert('Preencha todos os campos!');
+      alert('Preencha todos os campos!');
       return;
     }
     setLoading(true);
@@ -58,10 +58,10 @@ export default function Receitas({ onNavigate, usuario }) {
         fetchReceitas();
       } else {
         const data = await res.json();
-        Alert.alert('Erro', data.error || 'Erro ao adicionar receita');
+        alert('Erro', data.error || 'Erro ao adicionar receita');
       }
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      alert('Erro', 'Não foi possível conectar ao servidor');
     } finally {
       setLoading(false);
     }

@@ -18,10 +18,10 @@ const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
       if (response.ok) {
         onLoginSuccess(data.usuario);
       } else {
-        Alert.alert('Erro', data.error || 'Falha no login');
+        alert('Erro', data.error || 'Falha no login');
       }
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      alert('Erro', 'Não foi possível conectar ao servidor');
     } finally {
       setLoading(false);
     }

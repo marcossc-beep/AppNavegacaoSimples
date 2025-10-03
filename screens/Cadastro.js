@@ -18,13 +18,13 @@ const Cadastro = ({ onNavigateToLogin }) => {
       });
       const data = await response.json();
       if (response.ok) {
-        Alert.alert('Sucesso', 'Cadastro realizado!');
+        alert('Sucesso', 'Cadastro realizado!');
         onNavigateToLogin();
       } else {
-        Alert.alert('Erro', data.error || 'Falha no cadastro');
+        alert('Erro', data.error || 'Falha no cadastro');
       }
     } catch (err) {
-      Alert.alert('Erro', 'Não foi possível conectar ao servidor');
+      alert('Erro', 'Não foi possível conectar ao servidor');
     } finally {
       setLoading(false);
     }
