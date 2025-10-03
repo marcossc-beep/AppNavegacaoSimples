@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Planejamento de Aulas v3.0</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --cor-prfr: #fce8b2; --bg-prfr: #fef5da;
+            --cor-lopr: #f4cccc; --bg-lopr: #fdeeee;
+            --cor-prap: #c9daf8; --bg-prap: #eaf1fd;
+            --cor-dewe: #d9ead3; --bg-dewe: #f0f8f0;
+            --cor-default: #d9d9d9; --bg-default: #f3f3f3;
+            --cor-texto: #333; --borda-raio: 8px; --cor-borda: #ddd;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8f9fa; color: var(--cor-texto); margin: 0; padding: 1em;
+        }
+        .container { max-width: 1400px; margin: auto; }
+        header { text-align: center; margin-bottom: 1em; }
+        .navigation { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1em; flex-wrap: wrap; gap: 10px;}
+        .navigation button {
+            background-color: #007bff; color: white; border: none; padding: 10px 15px;
+            border-radius: var(--borda-raio); cursor: pointer; font-size: 1em; transition: background-color 0.2s;
+        }
+        .navigation button:hover { background-color: #0056b3; }
+        /* NOVO: Estilo para o botão de exportar */
+        #export-button { background-color: #28a745; }
+        #export-button:hover { background-color: #218838; }
+        #current-week-display { font-size: 1.2em; font-weight: bold; color: #495057; }
+
+        #calendar-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr);
+            border-top: 1px solid var(--cor-borda); border-left: 1px solid var(--cor-borda);
+            min-height: 70vh;
+        }
+        .day-column {
+            border-right: 1px solid var(--cor-borda); border-bottom: 1px solid var(--cor-borda);
+            background-color: #fff; padding: 8px;
+        }
+        .day-column.today { background-color: #fffbeb; }
+        .day-header { text-align: center; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid #eee; }
+        .day-name { font-weight: bold; }
+        .day-date { font-size: 0.8em; color: #6c757d; }
+        
+        .class-card {
+            background-color: var(--bg-default); padding: 10px; margin-bottom: 8px;
+            border-radius: var(--borda-raio); cursor: pointer; border-left: 5px solid var(--cor-default);
+            transition: box-shadow 0.2s;
+        }
+        .class-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .class-card .time { font-weight: bold; font-size: 0.9em; }
+        .class-card .subject { font-size: 0.85em; margin: 4px 0; }
+
+        .class-card.prfr { background-color: var(--bg-prfr); border-color: var(--cor-prfr); }
+        .class-card.lopr { background-color: var(--bg-lopr); border-color: var(--cor-lopr); }
+        .class-card.prap { background-color: var(--bg-prap); border-color: var(--cor-prap); }
+        .class-card.dewe { background-color: var(--bg-dewe); border-color: var(--cor-dewe); }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: #fefefe; margin: 5% auto; padding: 20px; border-radius: var(--borda-raio);
+            width: 90%; max-width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        
+        form label { display: block; margin-top: 10px; font-weight: bold; }
+        form input, form textarea { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        form textarea { height: 150px; resize: vertical; }
+        .form-actions { margin-top: 20px; display: flex; justify-content: space-between; }
+        #delete-button { background-color: #dc3545; }
+        #delete-button:hover { background-color: #c82333; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Planejamento Semanal de Aulas</h1>
+        </header>
+
+        <div class="navigation">
+            <div>
+                <button id="add-lesson-button">+ Adicionar Nova Aula</button>
+                <button id="export-button">Exportar Semana para XLSX</button>
+            </div>
+            <div>
+                <button id="prev-week-button">&lt; Semana Anterior</button>
+                <button id="today-button">Hoje</button>
+                <button id="next-week-button">Próxima Semana &gt;</button>
+            </div>
+        </div>
+        <div id="current-week-display"></div>
+        <div id="calendar-grid"></div>
+    </div>
+
+    <div id="lessonModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2 id="modal-title">Adicionar Nova Aula</h2>
+            <form id="lesson-form">
+                <input type="hidden" id="lesson-id">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label for="lesson-date">Data</label>
+                        <input type="date" id="lesson-date" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="lesson-start-time">Início</label>
+                        <input type="time" id="lesson-start-time" required>
+                    </div>
+                    <div style="flex: 1;">
+                        <label for="lesson-end-time">Fim</label>
+                        <input type="time" id="lesson-end-time" required>
+                    </div>
+                </div>
+                
+                <label for="lesson-subject">Disciplina</label>
+                <input type="text" id="lesson-subject" placeholder="Ex: PRFR - Projeto de Front-End" required>
+                
+                <label for="lesson-class">Turma</label>
+                <input type="text" id="lesson-class" placeholder="Ex: T TIIN 2024/2 N1" required>
+                
+                <label for="lesson-plan">Plano de Aula</label>
+                <textarea id="lesson-plan" placeholder="Descreva os objetivos, estrutura e recursos da aula..."></textarea>
+                
+                <div class="form-actions">
+                    <button type="button" id="delete-button" style="display: none;">Excluir Aula</button>
+                    <button type="submit">Salvar Aula</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let aulas = [];
+            let currentDisplayDate = new Date();
+
+            const calendarGrid = document.getElementById('calendar-grid');
+            const currentWeekDisplay = document.getElementById('current-week-display');
+            const modal = document.getElementById('lessonModal');
+            const form = document.getElementById('lesson-form');
+            const deleteButton = document.getElementById('delete-button');
+
+            const sampleData = [
+                { id: 1696590000000, date: '2025-10-06', startTime: '19:00', endTime: '21:00', subject: 'PRFR - Projeto de Front-End', class: 'T TIIN 2024/2 N1', plan: 'Aula sobre Planos de Teste, Relações Institucionais e Resolução de Problemas.'},
+                { id: 1696614600000, date: '2025-10-07', startTime: '13:45', endTime: '15:45', subject: 'LOPR - Lógica de Programação', class: 'T DESI 2025/2 V1', plan: 'Introdução a laços de repetição.'},
+                { id: 1696783200000, date: '2025-10-08', startTime: '19:00', endTime: '22:00', subject: 'DEWE - Design Web', class: 'T MULT 2025/1 N2', plan: 'Conceitos básicos de HTML e CSS.'}
+            ];
+
+            function salvarAulas() {
+                localStorage.setItem('meusPlanosDeAula', JSON.stringify(aulas));
+            }
+
+            function carregarAulas() {
+                const aulasSalvas = localStorage.getItem('meusPlanosDeAula');
+                aulas = (aulasSalvas && JSON.parse(aulasSalvas).length > 0) ? JSON.parse(aulasSalvas) : sampleData;
+            }
+
+            function renderWeek() {
+                calendarGrid.innerHTML = '';
+                const weekStart = getStartOfWeek(currentDisplayDate);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+                currentWeekDisplay.textContent = `Semana de ${formatDate(weekStart, 'd/m')} a ${formatDate(weekEnd, 'd/m/Y')}`;
+
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(weekStart);
+                    dayDate.setDate(weekStart.getDate() + i);
+                    
+                    const dayColumn = document.createElement('div');
+                    dayColumn.className = 'day-column';
+                    if (isToday(dayDate)) dayColumn.classList.add('today');
+
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'day-header';
+                    dayHeader.innerHTML = `<div class="day-name">${dayDate.toLocaleDateString('pt-BR', { weekday: 'long' })}</div><div class="day-date">${formatDate(dayDate, 'd/m')}</div>`;
+                    dayColumn.appendChild(dayHeader);
+
+                    const aulasDoDia = aulas
+                        .filter(aula => aula.date === formatDate(dayDate, 'Y-m-d'))
+                        .sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+                    aulasDoDia.forEach(aula => {
+                        const card = document.createElement('div');
+                        card.className = `class-card ${getColorClass(aula.subject)}`;
+                        card.dataset.id = aula.id;
+                        card.innerHTML = `<div class="time">${aula.startTime} - ${aula.endTime}</div><div class="subject">${aula.subject}</div>`;
+                        dayColumn.appendChild(card);
+                        card.addEventListener('click', () => openModal(aula.id));
+                    });
+                    calendarGrid.appendChild(dayColumn);
+                }
+            }
+            
+            // --- NOVO: FUNÇÃO DE EXPORTAÇÃO ---
+            function exportWeekToXLSX() {
+                const weekStart = getStartOfWeek(currentDisplayDate);
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekStart.getDate() + 6);
+
+                const aulasDaSemana = aulas.filter(aula => {
+                    const aulaDate = new Date(aula.date + 'T00:00:00');
+                    return aulaDate >= weekStart && aulaDate <= weekEnd;
+                }).sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+
+                if (aulasDaSemana.length === 0) {
+                    alert("Nenhuma aula para exportar nesta semana.");
+                    return;
+                }
+
+                const dataParaExportar = aulasDaSemana.map(aula => ({
+                    'Data': aula.date,
+                    'Dia da Semana': new Date(aula.date + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long' }),
+                    'Início': aula.startTime,
+                    'Fim': aula.endTime,
+                    'Disciplina': aula.subject,
+                    'Turma': aula.class,
+                    'Plano de Aula': aula.plan
+                }));
+
+                const worksheet = XLSX.utils.json_to_sheet(dataParaExportar);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Planos de Aula");
+                
+                // Ajusta a largura das colunas
+                worksheet["!cols"] = [
+                    { wch: 12 }, { wch: 15 }, { wch: 8 }, { wch: 8 }, 
+                    { wch: 40 }, { wch: 25 }, { wch: 80 }
+                ];
+
+                XLSX.writeFile(workbook, "planos_de_aula.xlsx");
+            }
+
+            function openModal(id = null) {
+                form.reset();
+                if (id) {
+                    const aula = aulas.find(a => a.id === id);
+                    document.getElementById('modal-title').textContent = "Editar Aula";
+                    document.getElementById('lesson-id').value = aula.id;
+                    document.getElementById('lesson-date').value = aula.date;
+                    document.getElementById('lesson-start-time').value = aula.startTime;
+                    document.getElementById('lesson-end-time').value = aula.endTime;
+                    document.getElementById('lesson-subject').value = aula.subject;
+                    document.getElementById('lesson-class').value = aula.class;
+                    document.getElementById('lesson-plan').value = aula.plan;
+                    deleteButton.style.display = 'block';
+                } else {
+                    document.getElementById('modal-title').textContent = "Adicionar Nova Aula";
+                    document.getElementById('lesson-id').value = '';
+                    deleteButton.style.display = 'none';
+                }
+                modal.style.display = 'block';
+            }
+
+            function closeModal() {
+                modal.style.display = 'none';
+            }
+
+            function handleFormSubmit(event) {
+                event.preventDefault();
+                const id = document.getElementById('lesson-id').value;
+                const aulaData = {
+                    date: document.getElementById('lesson-date').value,
+                    startTime: document.getElementById('lesson-start-time').value,
+                    endTime: document.getElementById('lesson-end-time').value,
+                    subject: document.getElementById('lesson-subject').value,
+                    class: document.getElementById('lesson-class').value,
+                    plan: document.getElementById('lesson-plan').value,
+                };
+
+                if (id) {
+                    const index = aulas.findIndex(a => a.id == id);
+                    aulas[index] = { ...aulas[index], ...aulaData };
+                } else {
+                    aulaData.id = Date.now();
+                    aulas.push(aulaData);
+                }
+                salvarAulas();
+                renderWeek();
+                closeModal();
+            }
+
+            function handleDelete() {
+                if (confirm("Tem certeza que deseja excluir esta aula?")) {
+                    const id = document.getElementById('lesson-id').value;
+                    aulas = aulas.filter(a => a.id != id);
+                    salvarAulas();
+                    renderWeek();
+                    closeModal();
+                }
+            }
+
+            function getStartOfWeek(date) {
+                const d = new Date(date);
+                const day = d.getDay();
+                const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+                return new Date(d.setDate(diff));
+            }
+
+            function formatDate(date, format) {
+                const d = new Date(date);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                if (format === 'Y-m-d') return `${year}-${month}-${day}`;
+                if (format === 'd/m') return `${day}/${month}`;
+                return `${day}/${month}/${year}`;
+            }
+
+            function isToday(date) {
+                const today = new Date();
+                return date.getDate() === today.getDate() &&
+                       date.getMonth() === today.getMonth() &&
+                       date.getFullYear() === today.getFullYear();
+            }
+
+            function getColorClass(subject) {
+                const code = subject.split(' ')[0].toLowerCase();
+                return ['prfr', 'lopr', 'prap', 'dewe'].includes(code) ? code : 'default';
+            }
+
+            document.getElementById('add-lesson-button').addEventListener('click', () => openModal());
+            document.getElementById('prev-week-button').addEventListener('click', () => {
+                currentDisplayDate.setDate(currentDisplayDate.getDate() - 7);
+                renderWeek();
+            });
+            document.getElementById('next-week-button').addEventListener('click', () => {
+                currentDisplayDate.setDate(currentDisplayDate.getDate() + 7);
+                renderWeek();
+            });
+            document.getElementById('today-button').addEventListener('click', () => {
+                currentDisplayDate = new Date();
+                renderWeek();
+            });
+            
+            // NOVO: Event listener para o botão de exportar
+            document.getElementById('export-button').addEventListener('click', exportWeekToXLSX);
+            
+            document.querySelector('.close-button').addEventListener('click', closeModal);
+            window.addEventListener('click', (event) => { if (event.target == modal) closeModal(); });
+            form.addEventListener('submit', handleFormSubmit);
+            deleteButton.addEventListener('click', handleDelete);
+
+            carregarAulas();
+            renderWeek();
+        });
+    </script>
+</body>
+</html>
