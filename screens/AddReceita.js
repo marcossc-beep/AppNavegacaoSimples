@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { SafeAreaView, ScrollView, StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native';
 
-// Tela dedicada para adicionar uma nova receita (formulário embutido)
 export default function AddReceita({ onSave, onCancel }) {
   const [title, setTitle] = useState('');
   const [ingredients, setIngredients] = useState('');

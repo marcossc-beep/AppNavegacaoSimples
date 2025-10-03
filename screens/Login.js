@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
 
 const Login = ({ onLoginSuccess, onNavigateToRegister }) => {
   const [email, setEmail] = useState('');

@@ -6,7 +6,6 @@ import Receitas from './screens/Receitas';
 import Login from './screens/Login';
 import Cadastro from './screens/Cadastro';
 
-// Placeholder para Categorias (será criado depois)
 const Categorias = React.lazy(() => import('./screens/Categorias'));
 
 export default function App() {

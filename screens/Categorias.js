@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, Modal, TextInput, Alert, Image } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, FlatList, Button, StyleSheet, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
 
-const Categorias = ({ onNavigate, usuario }) => {
+const Categorias = ({ onNavigate }) => {
   const [categorias, setCategorias] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [nome, setNome] = useState('');

@@ -1,8 +1,8 @@
 
 
 
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity, Modal, TextInput, Alert, SafeAreaView, ScrollView, Image } from 'react-native';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, FlatList, Button, TouchableOpacity, Modal, TextInput, SafeAreaView, ScrollView, Image } from 'react-native';
 
 export default function Receitas({ onNavigate, usuario }) {
   const [receitas, setReceitas] = useState([]);
